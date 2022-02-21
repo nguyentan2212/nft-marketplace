@@ -21,16 +21,18 @@ contract NFT721 is
 
     CountersUpgradeable.Counter private _tokenIdCounter;
 
-    string public contractURI;
+    string private _contractURI;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
+    ///@dev royalty: 0..10_000 -> 0%..100%
     function initialize(
         string memory _name,
         string memory _symbol,
         string memory _uri,
-        address deployer
+        address deployer,
+        uint96 royalty
     ) public initializer {
         __ERC721_init(_name, _symbol);
         __ERC721URIStorage_init();
@@ -38,7 +40,8 @@ contract NFT721 is
         __Ownable_init();
         __ERC721Royalty_init();
         
-        contractURI = _uri;
+        _contractURI = _uri;
+        _setDefaultRoyalty(deployer, royalty);
         _transferOwnership(deployer);
     }
 
@@ -56,6 +59,11 @@ contract NFT721 is
         override(ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721RoyaltyUpgradeable)
     {
         super._burn(tokenId);
+    }
+
+    function _baseURI() internal view override returns (string memory)
+    {
+        return _contractURI;
     }
 
     function tokenURI(uint256 tokenId)
