@@ -6,13 +6,12 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./NFT721.sol";
+import "./TransferExecutor.sol";
 
-contract Marketplace is ReentrancyGuard, ERC721Holder {
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-
+contract Marketplace is ReentrancyGuard, ERC721Holder, TransferExecutor {
+    using Counters for Counters.Counter;
     ///@dev item index, start from 1
-    CountersUpgradeable.Counter private _itemIdCounter;
-
+    Counters.Counter private _itemIdCounter;
     struct MarketItem {
         uint256 itemIndex;
         address seller;
@@ -34,6 +33,8 @@ contract Marketplace is ReentrancyGuard, ERC721Holder {
     event UnlistedNFT(uint256 indexed itemIndex, address indexed assetContract, uint256 indexed tokenId);
     event BoughtNFT(address indexed buyer, uint256 indexed itemIndex);
 
+    constructor() {}
+
     function listNft(
         address assetContract,
         uint256 tokenId,
@@ -43,16 +44,18 @@ contract Marketplace is ReentrancyGuard, ERC721Holder {
         uint256 saleEnd
     ) external nonReentrant {
         require(price > 0, "Marketplace: Price must greater than 0");
-        require(saleStart > saleEnd, "Marketplace: Sale start must grater than sale end");
+        require(saleStart < saleEnd, "Marketplace: Sale start must smaller than sale end");
 
         bytes32 itemHash = keccak256(abi.encodePacked(assetContract, tokenId));
         require(listings[itemHash] == 0, "Marketplace: Item have already listed on marketplace");
 
-        NFT721 nft = NFT721(assetContract);
-        address owner = nft.ownerOf(tokenId);
-        address accountApproved = nft.getApproved(tokenId);
-        require(msg.sender == owner || msg.sender == accountApproved, "Marketplace: Caller is not owner nor approved for all");
+        require(isAvailable(currency) == true, "Marketplace: Currency is not in whitelist");
 
+        NFT721 nft = NFT721(assetContract);
+        address tokenOwner = nft.ownerOf(tokenId);
+        address accountApproved = nft.getApproved(tokenId);
+        require(msg.sender == tokenOwner || msg.sender == accountApproved, "Marketplace: Caller is not owner nor approved for all");
+        
         _itemIdCounter.increment();
         uint256 itemIndex = _itemIdCounter.current();
         marketItems[itemIndex] = MarketItem(
@@ -67,48 +70,46 @@ contract Marketplace is ReentrancyGuard, ERC721Holder {
         );
         listings[itemHash] = itemIndex;
 
-        nft.safeTransferFrom(owner, address(this), tokenId);
+        nft.safeTransferFrom(tokenOwner, address(this), tokenId);
 
         emit ListedNFT(itemIndex, assetContract, tokenId);
     }
 
     function unlistNft(uint256 itemIndex) external {
-        require(itemIndex > _itemIdCounter.current(), "Marketplace: Item does not exit");
+        require(itemIndex <= _itemIdCounter.current(), "Marketplace: Item does not exit");
         
         MarketItem memory item = marketItems[itemIndex];
-        require(block.timestamp > item.saleEnd, "Marketplace: Item has expired");
         bytes32 itemHash = keccak256(abi.encodePacked(item.assetContract, item.tokenId));
-        require(listings[itemHash] != 0, "Marketplace: Item is not listed yet nor sold");
+        require(listings[itemHash] != 0, "Marketplace: Item is not listed yet or was sold");
         require(msg.sender == item.seller, "Marketplace: Caller is not seller");
 
         NFT721 nft = NFT721(item.assetContract);
         nft.safeTransferFrom(address(this), item.seller, item.tokenId);
+        listings[itemHash] = 0;
 
         emit UnlistedNFT(item.itemIndex, item.assetContract, item.tokenId);
     }
 
     function buy(uint256 itemIndex) external nonReentrant {
-        require(itemIndex > _itemIdCounter.current(), "Marketplace: Item does not exit");
+        require(itemIndex <= _itemIdCounter.current(), "Marketplace: Item does not exit");
         
         MarketItem memory item = marketItems[itemIndex];
-        require(block.timestamp > item.saleEnd, "Marketplace: Item has expired");
+        require(block.timestamp < item.saleEnd, "Marketplace: Item has expired");
         bytes32 itemHash = keccak256(abi.encodePacked(item.assetContract, item.tokenId));
-        require(listings[itemHash] != 0, "Marketplace: Item is not listed yet nor sold");
+        require(listings[itemHash] != 0, "Marketplace: Item is not listed yet or was sold");
 
-        // payment with native token
-        if (item.currency == address(0)){
-            address payable to = payable(item.seller);
-            (bool success, ) = to.call{ value: item.price }("");
-            require(success, "Marketplace: Native token transfer failed");
-        }
-        // payment with erc20 token
-        else {
-            IERC20 paymentToken = IERC20(item.currency);
-            require(paymentToken.approve(address(this), item.price), "Marketplace: Caller is not approved for marketplace");
-            paymentToken.transferFrom(msg.sender, item.seller, item.price);
-        }
         NFT721 nft = NFT721(item.assetContract);
         nft.safeTransferFrom(address(this), msg.sender, item.tokenId);
+
+        (address receiver, uint256 royalty) = nft.royaltyInfo(item.tokenId, item.price);
+
+        ///@dev pay royalty for creator
+        _executePayment(item.currency, royalty, msg.sender, receiver);
+
+        ///@dev pay for seller
+        _executePayment(item.currency, item.price - royalty, msg.sender, item.seller);
+
+        listings[itemHash] = 0;
 
         emit BoughtNFT(msg.sender, itemIndex);
     }
