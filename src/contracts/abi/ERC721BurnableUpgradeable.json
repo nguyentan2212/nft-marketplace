@@ -354,7 +354,7 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "// SPDX-License-Identifier: MIT\n// OpenZeppelin Contracts v4.4.1 (token/ERC721/extensions/ERC721Burnable.sol)\n\npragma solidity ^0.8.0;\n\nimport \"../ERC721Upgradeable.sol\";\nimport \"../../../utils/ContextUpgradeable.sol\";\nimport \"../../../proxy/utils/Initializable.sol\";\n\n/**\n * @title ERC721 Burnable Token\n * @dev ERC721 Token that can be irreversibly burned (destroyed).\n */\nabstract contract ERC721BurnableUpgradeable is Initializable, ContextUpgradeable, ERC721Upgradeable {\n    function __ERC721Burnable_init() internal onlyInitializing {\n    }\n\n    function __ERC721Burnable_init_unchained() internal onlyInitializing {\n    }\n    /**\n     * @dev Burns `tokenId`. See {ERC721-_burn}.\n     *\n     * Requirements:\n     *\n     * - The caller must own `tokenId` or be an approved operator.\n     */\n    function burn(uint256 tokenId) public virtual {\n        //solhint-disable-next-line max-line-length\n        require(_isApprovedOrOwner(_msgSender(), tokenId), \"ERC721Burnable: caller is not owner nor approved\");\n        _burn(tokenId);\n    }\n\n    /**\n     * @dev This empty reserved space is put in place to allow future versions to add new\n     * variables without shifting down storage in the inheritance chain.\n     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps\n     */\n    uint256[50] private __gap;\n}\n",
-  "sourcePath": "@openzeppelin\\contracts-upgradeable\\token\\ERC721\\extensions\\ERC721BurnableUpgradeable.sol",
+  "sourcePath": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol",
   "ast": {
     "absolutePath": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol",
     "exportedSymbols": {
@@ -1515,7 +1515,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.5",
-  "updatedAt": "2022-02-23T07:56:48.732Z",
+  "updatedAt": "2022-03-01T13:44:08.110Z",
   "devdoc": {
     "details": "ERC721 Token that can be irreversibly burned (destroyed).",
     "kind": "dev",
