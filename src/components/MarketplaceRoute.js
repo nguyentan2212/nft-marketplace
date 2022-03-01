@@ -26,6 +26,7 @@ function MarketplaceRoute({ web3, children }) {
                 <Navigate to="/admin" state={{ from: location }} />
             )}
             {hasMarketplace && marketplaceAddress && web3 && children}
+
         </>
     );
 }
