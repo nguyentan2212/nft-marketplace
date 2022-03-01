@@ -17,7 +17,7 @@ const App = () => {
 
     const isAdmin = () => {
         // return account && isAuthenticated && AdminAddress && AdminAddress.toUpperCase() === account.toUpperCase();
-        return true;
+        return false;
     };
 
     useEffect(() => {
