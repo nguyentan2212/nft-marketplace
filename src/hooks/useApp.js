@@ -1,7 +1,7 @@
-
+import useMarketplace from "./useMarketplace.js";
 
 function useApp() {
-    const marketplaceAddress = "market";
+    const { marketplaceAddress } = useMarketplace();
     const hasMarketplace = true;
     const canSetProject = true;
     const AdminAddress = "admin";
