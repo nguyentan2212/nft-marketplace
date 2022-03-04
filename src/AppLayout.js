@@ -22,7 +22,7 @@ function AppLayout({ isAdmin }) {
             <div style={styles.content}>
                 <Outlet />
             </div>
-            <Footer style={{ display: "grid", placeItems: "center" }}>Powered By Moralis</Footer>
+            <Footer style={{ display: "grid", placeItems: "center" }}>Powered By TanNguyen</Footer>
         </Layout>
     );
 }
