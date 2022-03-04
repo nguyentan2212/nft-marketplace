@@ -1,5 +1,5 @@
 import React from 'react'
-import useMarketplace from "../hooks/useMarketplace";
+import useMarketplace from "../../hooks/useMarketplace";
 
 function Marketplace() {
   const { marketplaceAddress } = useMarketplace();
