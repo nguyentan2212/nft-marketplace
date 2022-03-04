@@ -3,9 +3,9 @@ import { useChain, useMoralis } from "react-moralis";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Web3 from "web3";
 import "./style.css";
-import AdminRoute from "./components/AdminRoute";
 import useApp from "./hooks/useApp";
 import { Admin, Marketplace, NFTBalance, UserDashboard } from "./views";
+import { Adder, Dashboard, ModuleSelector, NFTCollection } from "./views/admin";
 import MarketplaceRoute from "./components/MarketplaceRoute";
 import AppLayout from "./AppLayout";
 
@@ -14,11 +14,12 @@ const App = () => {
     const { chainId } = useChain();
     const { marketplaceAddress, hasMarketplace, AdminAddress } = useApp();
     const [web3, setWeb3] = useState();
+    const [isAdmin, setIsAdmin] = useState(false);
 
-    const isAdmin = () => {
+    useEffect(() => {
         // return account && isAuthenticated && AdminAddress && AdminAddress.toUpperCase() === account.toUpperCase();
-        return false;
-    };
+        setIsAdmin(true);
+    }, []);
 
     useEffect(() => {
         if (provider) {
@@ -30,19 +31,17 @@ const App = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<AppLayout isAdmin={isAdmin(account)} />}>
-                    <Route
-                        index={isAdmin(account)}
-                        path="/admin"
-                        element={
-                            <AdminRoute>
-                                <Admin />
-                            </AdminRoute>
-                        }
-                    />
+                <Route path="/" element={<AppLayout isAdmin={isAdmin} />}>
+                    <Route path="admin" element={<Admin />}>
+                        <Route index  element={<Dashboard />} />
+                        <Route path="addModule" element={<Adder /> }>
+                            <Route index element={<ModuleSelector />} />
+                            <Route path="erc721module" element={<NFTCollection />} />
+                        </Route>
+                    </Route>
                     {hasMarketplace && (
                         <Route
-                            path="/NFTBalance"
+                            path="NFTBalance"
                             element={
                                 <NFTBalance
                                     web3={web3}
@@ -51,12 +50,12 @@ const App = () => {
                                     admin={AdminAddress}
                                     marketplaceAddress={marketplaceAddress}
                                 />
-                            }
+        }
                         />
                     )}
                     {hasMarketplace && (
                         <Route
-                            path="/user"
+                            path="user"
                             element={
                                 <UserDashboard
                                     address={account}
@@ -67,8 +66,8 @@ const App = () => {
                         />
                     )}
                     <Route
-                        index={!isAdmin(account)}
-                        path="/NFTMarketPlace"
+                        index={!isAdmin}
+                        path="NFTMarketPlace"
                         element={
                             <MarketplaceRoute web3={web3}>
                                 <Marketplace />
