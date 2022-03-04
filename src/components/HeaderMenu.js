@@ -50,7 +50,7 @@ const Logo = () => (
 );
 
 const HeaderMenu = ({ isAdmin }) => {
-    const hasMarketplace = true;
+    const hasMarketplace = true; 
 
     return (
         <Header style={styles.header}>
