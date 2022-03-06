@@ -5,7 +5,7 @@ import Web3 from "web3";
 import "./style.css";
 import useApp from "./hooks/useApp";
 import { Admin, Marketplace, NFTBalance, UserDashboard } from "./views";
-import { Adder, Dashboard, ModuleSelector, NFTCollection } from "./views/admin";
+import { Adder, Dashboard, ModuleSelector, NFTCollection, CollectionList } from "./views/admin";
 import MarketplaceRoute from "./components/MarketplaceRoute";
 import AppLayout from "./AppLayout";
 
@@ -33,11 +33,12 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<AppLayout isAdmin={isAdmin} />}>
                     <Route path="admin" element={<Admin />}>
-                        <Route index  element={<Dashboard />} />
-                        <Route path="addModule" element={<Adder /> }>
+                        <Route index element={<Dashboard />} />
+                        <Route path="addModule" element={<Adder />}>
                             <Route index element={<ModuleSelector />} />
                             <Route path="erc721module" element={<NFTCollection />} />
                         </Route>
+                        <Route path="nft-collection/:address" element={<CollectionList />} />
                     </Route>
                     {hasMarketplace && (
                         <Route
@@ -50,7 +51,7 @@ const App = () => {
                                     admin={AdminAddress}
                                     marketplaceAddress={marketplaceAddress}
                                 />
-        }
+                            }
                         />
                     )}
                     {hasMarketplace && (
