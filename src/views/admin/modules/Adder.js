@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useMoralis } from "react-moralis";
-import Web3 from "web3";
 import { Breadcrumbs } from "web3uikit";
 import { Row, Col } from "antd";
 import { Outlet, useLocation } from "react-router-dom";
 
 function Adder() {
-    const [web3, setWeb3] = useState();
     const [deployConfirmed, setDeployConfirmed] = useState(false);
-    const { provider } = useMoralis();
     const { pathname } = useLocation();
-    const [route, setRoute] = useState();
 
-    useEffect(() => {
-        if (provider) {
-            let web = new Web3(provider);
-            setWeb3(web);
-        }
-    }, [provider]);
 
     useEffect(() => {
         if (deployConfirmed) {
