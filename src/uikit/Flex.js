@@ -1,4 +1,4 @@
-export const Flex = (props) => (
+const Flex = (props) => (
     <div
         className={props.className}
         style={{
@@ -24,4 +24,4 @@ export const Flex = (props) => (
         {props.children}
     </div>
 );
-
+export default Flex;
