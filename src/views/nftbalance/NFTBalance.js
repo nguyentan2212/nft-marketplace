@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, iconTypes, Table } from "web3uikit";
 import { useNFTBalances } from "react-moralis";
 import { Image } from "antd";
-import { Flex } from "../../uikit/Flex";
+import Flex from "../../uikit/Flex";
 import HeaderStyled from "../../uikit/HeaderStyled";
 import Typography from "../../uikit/Typography";
 
