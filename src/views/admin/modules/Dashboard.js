@@ -37,7 +37,7 @@ function Dashboard() {
                 <Tab tabKey={4} tabName={"Panel"}>
                     <div>ERC-20 Tab Content</div>
                 </Tab>
-                <Tab tabKey={3} tabName={"Permissions"} isDisabled={true}>
+                <Tab tabKey={3} tabName={"Own Listing"} isDisabled={true}>
                     <div>Permissions comming soon ...</div>
                 </Tab>
             </TabList>

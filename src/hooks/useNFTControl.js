@@ -12,42 +12,21 @@ function useNFTCollection() {
     const { save } = useNewMoralisObject("InstalledModules");
     const { chainId } = useChain();
 
-    const uploadNFTCollection = (e) => {
-        setStage("uploading");
-        let metadata = {
-        name: e.name,
-            symbol: e.symbol,
-            image: e.image,
-            royalty: e.royalties,
-            description: e.description,
-        };
-        saveFile(
-            "metadata.json",
-            { base64: btoa(unescape(encodeURIComponent(JSON.stringify(metadata)))) },
-            {
-                type: "json",
-                metadata,
-                saveIPFS: true,
-                onSuccess: (e) => deployNFTCollection(e, metadata),
-            }
-        ).then();
-    };
-
     const deployNFTCollection = async (e, metadata) => {
         setStage("deploying");
-        const hash = e["_hash"];
-        const uri = `ipfs://${hash}`;
         const contract = TruffleContract(NFTCollectionAbi);
         contract.setProvider(provider);
         const instance = await contract.deployed();
         try {
-            console.log(metadata, uri);
             const result = await instance.deployNFT(
-                metadata.name, metadata.symbol, uri, metadata.royalty * 100,
+                metadata.name,
+                metadata.symbol,
+                metadata.uri,
+                metadata.royalty * 100,
                 { from: account }
             );
 
-            await syncContract(result, uri, metadata.name);
+            await syncContract(result, metadata.uri, metadata.name);
         } catch (e) {
             console.log(`Error: ${e.message}`);
             setError(e.message);
@@ -68,13 +47,12 @@ function useNFTCollection() {
     };
     const stages = {
         default: "Loading...",
-        uploading: "Uploading Metadata...",
         deploying: "Deploying Contract...",
         addingModule: "Adding Module...",
         syncing: "Syncing Module...",
     };
 
-    return { stage, stages, uploadNFTCollection, error };
+    return { stage, stages, deployNFTCollection, error };
 }
 
 export default useNFTCollection;

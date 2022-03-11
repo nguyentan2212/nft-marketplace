@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useChain, useMoralisWeb3Api } from "react-moralis";
 import { Image } from "antd";
-import { Table, Button, Illustration, Breadcrumbs, iconTypes, NotificationProvider } from "web3uikit";
+import { Table, Button, Illustration, Breadcrumbs, iconTypes } from "web3uikit";
 import { useParams } from "react-router-dom";
 import NFTMinter from "./NFTMinter";
+import NFTLister from "./NFTLister"; 
 import HeaderStyled from "../../../uikit/HeaderStyled";
 import Flex from "../../../uikit/Flex";
 
@@ -179,10 +180,13 @@ function CollectionList() {
                     }
                 />
             )}
-            {showMinter && (
-                <NotificationProvider>
-                    <NFTMinter address={address} />
-                </NotificationProvider>
+            {showMinter && <NFTMinter address={address} />}
+            {showLister && (
+                <NFTLister
+                    modalActive={showLister}
+                    setModalActive={setShowLister}
+                    nft={nftToList}
+                />
             )}
         </Flex>
     );

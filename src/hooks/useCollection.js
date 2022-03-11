@@ -13,10 +13,11 @@ function useCollection(address) {
     const [mintingError, setMintingError] = useState(null);
 
     const mint = async (to, uri) => {
-        setIsMinting(true);
         const contract = TruffleContract(CollectionAbi);
         contract.setProvider(provider);
         const instance = await contract.at(address);
+
+        setIsMinting(true);
         try {
             await instance.safeMint(to, uri, { from: account });
             token.syncNFTContract({
@@ -31,7 +32,23 @@ function useCollection(address) {
         }
     };
 
-    return { mint, isMinting, mintingError, mintingSuccess };
+    const getApproved = async (tokenId) => {
+        const contract = TruffleContract(CollectionAbi);
+        contract.setProvider(provider);
+        const instance = await contract.at(address);
+        const result = await instance.getApproved(tokenId, { from: account });
+
+        return result;
+    };
+
+    const approve = async (to, tokenId) => {
+        const contract = TruffleContract(CollectionAbi);
+        contract.setProvider(provider);
+        const instance = await contract.at(address); 
+        await instance.approve(to, tokenId, { from: account });
+    };
+
+    return { mint, isMinting, mintingError, mintingSuccess, approve, getApproved };
 }
 
 export default useCollection;
