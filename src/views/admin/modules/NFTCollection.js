@@ -1,6 +1,5 @@
 import React from "react";
 import { Form, Notification } from "web3uikit";
-import { useNavigate } from "react-router-dom";
 import Flex from "../../../uikit/Flex";
 import HeaderStyled from "../../../uikit/HeaderStyled";
 import Typography from "../../../uikit/Typography";
@@ -8,17 +7,16 @@ import useNFTControl from "../../../hooks/useNFTControl";
 
 function NFTCollection() {
     const { stage, stages, error, deployNFTCollection } = useNFTControl();
-    const navigate = useNavigate();
 
     const onSubmit = async ({ data }) => {
         const nftCollectionInfo = {
-            name: String(data[0].inputResult),
-            royalties: data[4].inputResult,
-            symbol: data[2].inputResult,
+            name: data[0].inputResult,
+            royalties: Number(data[2].inputResult),
+            symbol: data[1].inputResult,
+            uri: "ipfs://"
         };
         console.log("nftCollectionInfo: ", nftCollectionInfo);
         await deployNFTCollection(nftCollectionInfo);
-        navigate("admin");
     };
 
     return (
