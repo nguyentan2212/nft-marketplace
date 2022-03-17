@@ -12,7 +12,7 @@ function useNFTCollection() {
     const { save } = useNewMoralisObject("InstalledModules");
     const { chainId } = useChain();
 
-    const deployNFTCollection = async (e, metadata) => {
+    const deployNFTCollection = async (metadata) => {
         setStage("deploying");
         const contract = TruffleContract(NFTCollectionAbi);
         contract.setProvider(provider);
@@ -22,7 +22,7 @@ function useNFTCollection() {
                 metadata.name,
                 metadata.symbol,
                 metadata.uri,
-                metadata.royalty * 100,
+                metadata.royalties * 100,
                 { from: account }
             );
 
@@ -44,6 +44,7 @@ function useNFTCollection() {
         });
         setStage("addingModule");
         await save({ module: args.contractAddress, uri, name });
+        setStage("default");
     };
     const stages = {
         default: "Loading...",
