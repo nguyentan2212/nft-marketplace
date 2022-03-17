@@ -34,7 +34,7 @@ function NFTMinter({ address }) {
             }
         ).then(async (file) => {
             const hash = file["_hash"];
-            await mint(e.to, `ipfs://${hash}`);
+            await mint(e.to, `${hash}`);
         });
     };
     return (
