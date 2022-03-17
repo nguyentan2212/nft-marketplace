@@ -19,11 +19,19 @@ function useCollection(address) {
 
         setIsMinting(true);
         try {
-            await instance.safeMint(to, uri, { from: account });
-            token.syncNFTContract({
+            const { logs } = await instance.safeMint(to, uri, { from: account });
+            await token.syncNFTContract({
                 address,
                 chain: chainId,
             });
+            const { args } = logs[0];
+
+            await token.reSyncMetadata({
+                chain: chainId,
+                address,
+                token_id: args.tokenId,
+            });
+
             setIsMinting(false);
             setMintingSuccess(true);
         } catch (e) {
@@ -44,7 +52,7 @@ function useCollection(address) {
     const approve = async (to, tokenId) => {
         const contract = TruffleContract(CollectionAbi);
         contract.setProvider(provider);
-        const instance = await contract.at(address); 
+        const instance = await contract.at(address);
         await instance.approve(to, tokenId, { from: account });
     };
 
