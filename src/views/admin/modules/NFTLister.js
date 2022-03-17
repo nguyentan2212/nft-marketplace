@@ -3,7 +3,6 @@ import { Input, Modal, Select } from "web3uikit";
 import { Image } from "antd";
 import useMarketplace from "../../../hooks/useMarketplace";
 import useCollection from "../../../hooks/useCollection";
-import Flex from "../../../uikit/Flex";
 
 function NFTLister({ nft, modalActive, setModalActive }) {
     const { listNFT, isListing, zeroAddress, marketplaceAddress } = useMarketplace();
@@ -20,7 +19,6 @@ function NFTLister({ nft, modalActive, setModalActive }) {
         };
         init();
     }, [nft, getApproved, marketplaceAddress]);
-
     return (
         <Modal
             isVisible={modalActive}

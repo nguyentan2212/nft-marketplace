@@ -26,8 +26,7 @@ function NFTBalance({ address, chain, marketplaceAddress, web3 }) {
                             <Image
                                 style={{ borderRadius: "15px", minHeight: "80px", minWidth: "80px" }}
                                 src={
-                                    nft.metadata && nft.metadata.image.includes("://" | "https" | "ipfs")
-                                        ? nft.metadata.image
+                                    nft.metadata && nft.metadata.image ? nft.metadata.image
                                         : "https://i.ibb.co/jvjKFFv/Image.png"
                                 }
                             />

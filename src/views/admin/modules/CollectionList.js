@@ -4,7 +4,7 @@ import { Image } from "antd";
 import { Table, Button, Illustration, Breadcrumbs, iconTypes } from "web3uikit";
 import { useParams } from "react-router-dom";
 import NFTMinter from "./NFTMinter";
-import NFTLister from "./NFTLister"; 
+import NFTLister from "./NFTLister";
 import HeaderStyled from "../../../uikit/HeaderStyled";
 import Flex from "../../../uikit/Flex";
 
@@ -47,6 +47,7 @@ function CollectionList() {
             setIsEmpty(false);
             const temp = [];
             NFTs.result.forEach((result, index) => {
+                
                 const metadata = JSON.parse(result.metadata);
                 console.log(result);
                 temp.push([
@@ -57,9 +58,7 @@ function CollectionList() {
                         width={80}
                         style={{ borderRadius: "15px" }}
                         src={
-                            metadata && metadata.image && metadata.image.includes("://" | "https" | "ipfs")
-                                ? metadata.image
-                                : "https://i.ibb.co/FzDBLqk/Image.png"
+                            metadata && metadata.image ? metadata.image : "https://i.ibb.co/FzDBLqk/Image.png"
                         }
                     />,
                     <div>
@@ -182,11 +181,7 @@ function CollectionList() {
             )}
             {showMinter && <NFTMinter address={address} />}
             {showLister && (
-                <NFTLister
-                    modalActive={showLister}
-                    setModalActive={setShowLister}
-                    nft={nftToList}
-                />
+                <NFTLister modalActive={showLister} setModalActive={setShowLister} nft={nftToList} />
             )}
         </Flex>
     );
