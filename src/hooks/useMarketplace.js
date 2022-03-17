@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMoralis, useNewMoralisObject } from "react-moralis";
+import Web3 from "web3";
 
 const Contract = require("@truffle/contract");
 const MarketplaceAbi = require("../contracts/abi/Marketplace.json");
@@ -9,8 +10,10 @@ function useMarketplace() {
     const { provider, Moralis, account } = useMoralis();
     const { save } = useNewMoralisObject("Marketplace");
     const [marketplace, setMarketplace] = useState(null);
+    const [web3, setWeb3] = useState(false);
     const [marketplaceAddress, setMarketplaceAddress] = useState(null);
     const [isListing, setIsListing] = useState(false);
+    const [loadingListings, setLoadingListings] = useState(false);
     const zeroAddress = "0x0000000000000000000000000000000000000000";
 
     useEffect(() => {
@@ -21,6 +24,8 @@ function useMarketplace() {
                 const instance = await contract.deployed();
                 setMarketplace(instance);
                 setMarketplaceAddress(instance.address);
+                const tempWeb3 = new Web3(provider);
+                setWeb3(tempWeb3);
             }
         };
         init();
@@ -48,18 +53,61 @@ function useMarketplace() {
         const result = await marketplace.listNft(tokenAddress, tokenId, currency, finalPrice, start, end, {
             from: account,
         });
-        await save({
-            tokenAddress,
-            tokenId,
-            currency,
-            price: finalPrice,
-            saleStart: start,
-            saleEnd: end,
-            transaction: result.tx,
-        });
+        const { logs } = result;
+        const { args } = logs[0];
+
+        // await save({
+        //     listingIndex: args.itemIndex,
+        //     tokenAddress,
+        //     tokenId,
+        //     currency,
+        //     price: finalPrice,
+        //     saleStart: start,
+        //     saleEnd: end,
+        //     transaction: result.tx,
+        //     status: "listing",
+        // });
         setIsListing(false);
     };
-    return { marketplace, marketplaceAddress, listNFT, zeroAddress, isListing };
+
+    const listingIndex = async (tokenAddress, tokenId) => {
+        if (web3 && marketplace) {
+            const hash = await web3.utils.soliditySha3(tokenAddress, tokenId);
+            const index = await marketplace.listings(hash);
+            return index;
+        }
+        return 0;
+    };
+
+    const unlisting = async (tokenAddress, tokenId) => {
+        if (marketplace) {
+            const index = await listingIndex(tokenAddress, tokenId);
+            console.log(index);
+            await marketplace.unlistNft(index, { from: account });
+        }
+    };
+
+    const allListings = async () => {
+        if (marketplace) {
+            const result = await marketplace.getAllItems();
+            return result;
+        }
+        return null;
+    };
+
+    const allListingByUser = async () => {};
+    return {
+        marketplace,
+        marketplaceAddress,
+        listNFT,
+        zeroAddress,
+        isListing,
+        allListings,
+        unlisting,
+        listingIndex,
+        loadingListings,
+        setLoadingListings,
+    };
 }
 
 export default useMarketplace;
