@@ -34,7 +34,7 @@ function NFTLister({ nft, modalActive, setModalActive }) {
             isOkDisabled={!price || isListing || !isApproved}
             cancelText="Approve token"
             onCancel={async () => {
-                await approve(nft.token_id, marketplaceAddress);
+                await approve(marketplaceAddress, nft.token_id);
                 setIsApproved(true);
             }}
             isCancelDisabled={isApproved || isListing}
