@@ -36,7 +36,7 @@ function useMarketplace() {
 
         // convert price units
         let finalPrice = 0;
-        if (currency == zeroAddress) {
+        if (currency === zeroAddress) {
             finalPrice = Moralis.Units.ETH(price);
         } else {
             console.log("token");
@@ -56,17 +56,19 @@ function useMarketplace() {
         const { logs } = result;
         const { args } = logs[0];
 
-        // await save({
-        //     listingIndex: args.itemIndex,
-        //     tokenAddress,
-        //     tokenId,
-        //     currency,
-        //     price: finalPrice,
-        //     saleStart: start,
-        //     saleEnd: end,
-        //     transaction: result.tx,
-        //     status: "listing",
-        // });
+        await save({
+            listingIndex: args.itemIndex,
+            tokenAddress,
+            tokenId,
+            seller: account,
+            currency,
+            price: finalPrice,
+            saleStart: start,
+            saleEnd: end,
+            transaction: result.tx,
+            status: "listing",
+            isOnMarketplace: true
+        });
         setIsListing(false);
     };
 
@@ -79,11 +81,26 @@ function useMarketplace() {
         return 0;
     };
 
-    const unlisting = async (tokenAddress, tokenId) => {
+    const unlisting = async (item) => {
         if (marketplace) {
-            const index = await listingIndex(tokenAddress, tokenId);
-            console.log(index);
-            await marketplace.unlistNft(index, { from: account });
+            const result = await marketplace.unlistNft(item.get("listingIndex"), { from: account });
+
+            item.set("isOnMarketplace", false);
+            await item.save();
+
+            await save({
+                listingIndex: item.get("listingIndex"),
+                tokenAddress: item.get("tokenAddress"),
+                tokenId: item.get("tokenId"),
+                seller: item.get("seller"),
+                currency: item.get("currency"),
+                price: item.get("price"),
+                saleStart: item.get("saleStart"),
+                saleEnd: item.get("saleEnd"),
+                transaction: result.tx,
+                status: "unlisted",
+                isOnMarketplace: false
+            });
         }
     };
 
