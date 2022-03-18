@@ -9,46 +9,48 @@ import { getExplorer } from "../../helpers/networks";
 
 function Marketplace({ ownListings }) {
     const [tableData, setTableData] = useState([]);
+    const [reload, setReload] = useState(false);
+    const [dataLoading, setDataLoading] = useState(false);
     const { data, error, isLoading } = useMoralisQuery("Marketplace", (query) =>
-        query.contains("status", "listing").descending("listingIndex")
+        query.contains("status", "listing").equalTo("isOnMarketplace", true).descending("listingIndex")
     );
+
     const { token } = useMoralisWeb3Api();
     const { chainId, Moralis, account } = useMoralis();
-    const { allListings, loadingListings, setLoadingListings, zeroAddress, unlisting } = useMarketplace();
-    useEffect(() => {
-        if (data) {
-            console.log(data);
-        }
-        const fecth = async () => {
-            setLoadingListings(true);
-            const result = await allListings();
-            console.log(result);
+    const { zeroAddress, unlisting } = useMarketplace();
 
-            if (result) {
-                result.forEach((nft, index) => {
-                    onForEach(result, nft, index);
+    const unlist = async (address, id) => {
+        await unlisting(address, id);
+        setReload((prevState) => !prevState);
+    };
+
+    useEffect(() => {
+        const init = async () => {
+            setTableData([]);
+
+            if (data && data.length > 0 && !isLoading) {
+                setDataLoading(true);
+                data.forEach((nft, index) => {
+                    onForEach(data, nft, index);
                 });
             }
-
-            setLoadingListings(false);
         };
-        fecth();
-    }, [data]);
+        init();
+    }, [data, isLoading, reload]);
 
     const onForEach = (nftList, nft, index) => {
-        if (nft[2] === zeroAddress) {
-            return null;
-        }
+        console.log(nft);
         token
             .getTokenIdMetadata({
                 chain: chainId,
-                address: nft[2],
-                token_id: nft[3],
+                address: nft.get("tokenAddress"),
+                token_id: nft.get("tokenId"),
             })
             .then(async (metadataResult) => {
                 console.log(metadataResult);
+                const metadata = JSON.parse(metadataResult.metadata);
                 var tokenResult;
-                if (nft[4] === zeroAddress) {
+                if (nft.get("currency") === zeroAddress) {
                     tokenResult = [
                         {
                             decimals: 18,
@@ -57,8 +59,8 @@ function Marketplace({ ownListings }) {
                     ];
                 } else {
                     tokenResult = await token.getTokenMetadata({
-                        addresses: [nft[4]],
-                        ["chain"]: chainId,
+                        addresses: nft.get("currency"),
+                        chain: chainId,
                     });
                 }
                 console.log(tokenResult);
@@ -70,7 +72,7 @@ function Marketplace({ ownListings }) {
                             width: "100%",
                             height: "100%",
                         }}>
-                        <span style={{ color: "#041836", fontSize: "16px" }}>{nft[3]}</span>
+                        <span style={{ color: "#041836", fontSize: "16px" }}>{nft.get("tokenId")}</span>
                     </div>,
                     <div
                         style={{
@@ -81,7 +83,12 @@ function Marketplace({ ownListings }) {
                             borderRadius: "15px",
                             marginTop: "-5px",
                         }}>
-                        <Image src={metadataResult.image ? metadataResult.image : "https://i.ibb.co/FzDBLqk/Image.png"} width={80} height={80} alt={""} />
+                        <Image
+                            src={metadata.image ? metadata.image : "https://i.ibb.co/FzDBLqk/Image.png"}
+                            width={80}
+                            height={80}
+                            alt={""}
+                        />
                     </div>,
                     <div
                         style={{
@@ -91,7 +98,15 @@ function Marketplace({ ownListings }) {
                             height: "100%",
                         }}>
                         <span style={{ color: "#041836", fontSize: "16px" }}>
-                            {metadataResult.name ? `${metadataResult.name}  #${metadataResult.token_id}` : ""}
+                            <LinkTo
+                                text={
+                                    metadataResult.name
+                                        ? `${metadataResult.name}  #${metadataResult.token_id}`
+                                        : ""
+                                }
+                                address={`${getExplorer(chainId)}address/${nft.get("tokenAddress")}`}
+                                type="external"
+                            />
                         </span>
                     </div>,
                     <div
@@ -102,8 +117,8 @@ function Marketplace({ ownListings }) {
                             height: "100%",
                         }}>
                         <LinkTo
-                            text={getEllipsisTxt(nft[2], 4)}
-                            address={`${getExplorer(chainId)}address/${nft[2]}`}
+                            text={getEllipsisTxt(nft.get("seller"), 4)}
+                            address={`${getExplorer(chainId)}address/${nft.get("seller")}`}
                             type="external"
                         />
                     </div>,
@@ -129,9 +144,10 @@ function Marketplace({ ownListings }) {
                                 color: "#041836",
                                 textAlign: "center",
                                 fontSize: "16px",
-                            }}>{`${Moralis.Units.FromWei(nft[5], Number(tokenResult[0].decimals))} ${
-                            tokenResult[0].symbol
-                        }`}</span>
+                            }}>{`${Moralis.Units.FromWei(
+                            nft.get("currency"),
+                            Number(tokenResult[0].decimals)
+                        )} ${tokenResult[0].symbol}`}</span>
                     </div>,
                     <div
                         style={{
@@ -142,19 +158,19 @@ function Marketplace({ ownListings }) {
                             height: "100%",
                         }}>
                         <Button isFullWidth text={"Buy"} theme={"outline"} onClick={() => {}} />
-                        {account.toLowerCase() === nft[1].toLowerCase() && (
+                        {account.toLowerCase() === nft.get("seller").toLowerCase() && (
                             <Button
                                 icon={iconTypes.bin}
                                 iconLayout={"icon-only"}
                                 theme={"outline"}
-                                onClick={() => unlisting(nft[2], nft[3])}
+                                onClick={() => unlist(nft)}
                             />
                         )}
                     </div>,
                 ];
                 setTableData((prevState) => (prevState.length === 0 ? [row] : [...prevState, row]));
                 if (index === nftList.length - 1) {
-                    setLoadingListings(false);
+                    setDataLoading(false);
                 }
             })
             .catch((e) => {
@@ -169,7 +185,7 @@ function Marketplace({ ownListings }) {
                 {ownListings ? "Your Listings" : "Explore Market"}
             </p>
             <p style={{ marginBottom: "30px" }}>{`${
-                loadingListings
+                dataLoading
                     ? "loading ..."
                     : `${tableData.length} item${tableData.length > 1 ? "s" : ""} listed`
             }`}</p>
@@ -200,7 +216,7 @@ function Marketplace({ ownListings }) {
                 onPageNumberChanged={function noRefCheck() {}}
                 pageSize={5}
                 customNoDataComponent={
-                    loadingListings ? (
+                    dataLoading ? (
                         <div>
                             <Illustration logo={"servers"} />
                             <p>Loading ...</p>
