@@ -1,29 +1,55 @@
 import React from "react";
-import { Layout } from "antd";
-import { Outlet } from "react-router-dom";
-import HeaderMenu from "./components/HeaderMenu";
-const { Footer } = Layout;
+import { Outlet, useNavigate } from "react-router-dom";
+import { useMoralis } from "react-moralis";
+import { ConnectButton, Button } from "web3uikit";
 
-const styles = {
-    content: {
-        display: "flex",
-        justifyContent: "center",
-        fontFamily: "Roboto, sans-serif",
-        color: "#041836",
-        marginTop: "130px",
-        padding: "10px",
-    },
-};
-
-function AppLayout({ isAdmin }) {
+function AppLayout() {
+    const { isAuthenticated } = useMoralis();
+    const navigate = useNavigate();
     return (
-        <Layout style={{ height: "100vh", overflow: "auto" }}>
-            <HeaderMenu isAdmin={isAdmin} />
-            <div style={styles.content}>
-                <Outlet />
+        <div
+            style={{
+                maxWidth: "1200px",
+                display: "flex",
+                flexDirection: "column",
+                padding: "24px",
+                marginLeft: "auto",
+                marginRight: "auto",
+            }}>
+            <div style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", gap: "36px", marginBottom: "24px" }}>
+                    <Button
+                        onClick={() => navigate("/")}
+                        text="Home"
+                        theme="text"
+                        type="button"
+                        size="large"
+                    />
+                    {isAuthenticated && (
+                        <Button
+                            onClick={() => navigate("/create")}
+                            text="Create"
+                            theme="text"
+                            type="button"
+                            size="large"
+                        />
+                    )}
+                    {isAuthenticated && (
+                        <Button
+                            onClick={() => navigate("/balance")}
+                            text="Balance"
+                            theme="text"
+                            type="button"
+                            size="large"
+                        />
+                    )}
+                </div>
+                <div style={{ display: "flex" }}>
+                    <ConnectButton />
+                </div>
             </div>
-            <Footer style={{ display: "grid", placeItems: "center" }}>Powered By TanNguyen</Footer>
-        </Layout>
+            <Outlet />
+        </div>
     );
 }
 
